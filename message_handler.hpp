@@ -8,7 +8,9 @@ namespace PeripheralMessages
 class MessageHandler
 {
 public:
-static void process_messages(uint8_t* const buffer,const size_t length);
+	static void begin();
+	static void process_messages(uint8_t* const buffer,const size_t length, uint16_t from_id);
+private:
 };
 
 }

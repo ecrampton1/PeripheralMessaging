@@ -3,6 +3,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+//TODO automate this in the build process
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 1
+
+
 //Data sent out from a query
 //Query just asks for the data
 #define MESSAGE_ID_DQ(MSG) \

@@ -3,7 +3,7 @@
 #include "messaging.hpp"
 
 
-using callback = void (*)(void*);
+using callback = void (*)(void*,uint16_t);
 namespace PeripheralMessages {
 
 struct PayloadHeader
@@ -16,12 +16,13 @@ template<MessageId _messageId, class _messageStruct>
 class Message
 {
 public:
-	
+
 	Message() :
 	mMessageAllocated(true)
 	{
+		//boo this doesnt work on MSP430 for some reason, malloc as well...
 		mMessageBuffer = new uint8_t[sizeof(PayloadHeader)+sizeof(_messageStruct)];
-		Message(mMessageBuffer,sizeof(PayloadHeader)+sizeof(_messageStruct));
+		Initialize(mMessageBuffer,sizeof(PayloadHeader)+sizeof(_messageStruct),true);
 	}  
 
 	//Pass in already allocated buffer to be filled with message.
@@ -49,19 +50,18 @@ public:
 		}
 	}
 	
-	static void set_callback(callback cb, void* ca)
+	static void set_callback(callback cb)
 	{
 		mCallback = cb;
-		mCallbackArgs = ca;
 	}
 
-	static void default_callback(void*) {
+	static void default_callback(void* msg, uint16_t calling_id) {
 		//Do nothing
 	}
 	
-	static void trigger_callback()  //add default callback that warns in compiler? or Assert to force it.
+	static void trigger_callback(void* msg, uint16_t calling_id)  //add default callback that warns in compiler? or Assert to force it.
 	{
-		mCallback(mCallbackArgs);
+		mCallback(msg,calling_id);
 	}
 	
 	
@@ -119,13 +119,11 @@ private:
     PayloadHeader* mHeader;
 	_messageStruct* mMessage;
 	static callback mCallback;
-	static void* mCallbackArgs;
 
 };
 template<MessageId m, class t>
 callback Message<m,t>::mCallback = Message<m,t>::default_callback;
 template<MessageId m, class t>
-void* Message<m,t>::mCallbackArgs = nullptr;
 
 
 using SwitchEventMsg  = Message<MessageId::SwitchEvent,SwitchMessage>;
@@ -140,9 +138,6 @@ using TemperatureRequestMsg = Message<MessageId::SwitchRequest,EmptyMessage>;
 
 using VersionDataMsg  = Message<MessageId::VersionData,VersionMessage>;
 using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
-
-
-
 
 
 	
