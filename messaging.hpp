@@ -1,7 +1,7 @@
 #ifndef MESSAGING_HPP_
 #define MESSAGING_HPP_
 #include <stdint.h>
-#include <cstddef>
+#include <stddef.h>
 
 //Data sent out from a query
 //Query just asks for the data
@@ -53,14 +53,10 @@ struct TemperatureMessage
 	int16_t temperature;
 };
 
-};
+}
 
 
-#define FOR_ALL_INCOMING_MESSAGES(ACTION) \
-	ACTION( SwitchRequest ) \
-	ACTION( SwitchQuery ) \
-	ACTION( TemperatureQuery ) \
-	ACTION( VersionQuery )
+
 
 
 

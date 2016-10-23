@@ -9,7 +9,7 @@ namespace PeripheralMessages {
 struct PayloadHeader
 {
 	MessageId mMessageId;
-	uint8_t mReserved; /*reserved? maybe version*/
+	uint16_t mReserved; /*reserved? maybe version*/
 };
 
 template<MessageId _messageId, class _messageStruct>
@@ -36,6 +36,7 @@ public:
 	mMessageAllocated(false)
 	{
 		mMessageAllocated = false;
+		mMessageBuffer = buffer;
 		Initialize(buffer,bufferLength,createMessage);
 	}
 
@@ -58,7 +59,7 @@ public:
 		//Do nothing
 	}
 	
-	void trigger_callback()  //add default callback that warns in compiler? or Assert to force it.
+	static void trigger_callback()  //add default callback that warns in compiler? or Assert to force it.
 	{
 		mCallback(mCallbackArgs);
 	}
@@ -69,13 +70,13 @@ public:
 		return sizeof(PayloadHeader)+sizeof(_messageStruct);
 	}
 
-	const uint8_t* get_message_buffer()
+	uint8_t* const get_message_buffer() const
 	{
 		return mMessageBuffer;
 	}
 	
 	
-	const PayloadHeader* get_message_header()
+	PayloadHeader* const get_message_header() const
 	{
 		return mHeader;
 	}
@@ -138,7 +139,7 @@ using TemperatureQueryMsg = Message<MessageId::SwitchQuery,EmptyMessage>;
 using TemperatureRequestMsg = Message<MessageId::SwitchRequest,EmptyMessage>;
 
 using VersionDataMsg  = Message<MessageId::VersionData,VersionMessage>;
-using VersionQueryMsg = Message<MessageId::VersionQuery,VersionMessage>;
+using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
 
 
 
@@ -147,6 +148,6 @@ using VersionQueryMsg = Message<MessageId::VersionQuery,VersionMessage>;
 	
 	
 
-};
+}
 #endif //MESSAGE_HPP_
 

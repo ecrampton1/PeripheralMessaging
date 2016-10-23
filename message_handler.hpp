@@ -5,13 +5,11 @@
 namespace PeripheralMessages
 {
 
-class MessageHandlerInterface
+class MessageHandler
 {
 public:
-MessageHandlerInterface() {}
-virtual void process_messages(const uint8_t* buffer,const size_t length);
-virtual void publish_message();
+static void process_messages(uint8_t* const buffer,const size_t length);
 };
 
-};
+}
 #endif //MESSAGING_HANDLER_HPP_
