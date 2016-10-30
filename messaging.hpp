@@ -25,13 +25,19 @@
 	MESSAGE_ID_DQ(MSG), \
 	MESSAGE_ID_ER(MSG) 
 
+#define COMMA(x) x,
+
+#define ALL_MESSAGES(ACTION) \
+	ACTION(MESSAGE_ID_DQ(Version)) \
+	ACTION(MESSAGE_ID_ALL(Switch)) \
+	MESSAGE_ID_ALL(Temperature)
+
+
 namespace PeripheralMessages {
 
 enum class MessageId : uint16_t
 {
-	MESSAGE_ID_DQ(Version),
-	MESSAGE_ID_ALL(Switch),
-	MESSAGE_ID_ALL(Temperature)
+	ALL_MESSAGES(COMMA)
 };
 
 struct EmptyMessage
