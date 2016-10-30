@@ -5,8 +5,7 @@
 namespace PeripheralMessages
 {
 
-#define FOR_ALL_INCOMING_MESSAGES(ACTION) \
-	ACTION( SwitchRequest )
+
 
 void MessageHandler::process_messages(uint8_t* const buffer,const size_t length, uint16_t from_id)
 {

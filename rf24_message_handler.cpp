@@ -7,7 +7,6 @@
 namespace PeripheralMessages
 {
 
-static constexpr uint8_t NODEID = 10;
 static constexpr uint8_t USERTYPE = 66;
 
 uint8_t RF24MessageHandler::mBuffer[BUFFER_SIZE];
@@ -28,9 +27,11 @@ void RF24MessageHandler::begin()
 
 void RF24MessageHandler::serviceOnce()
 {
+	//PRINT(__FUNCTION__, ENDL)
 	RF24Mesh::update();
 
 	while (RF24Network::available()) {
+		PRINT(__FUNCTION__, "Avaliable", ENDL)
 		RF24NetworkHeader header;
 		RF24Network::peek(header);
 
@@ -68,13 +69,15 @@ bool RF24MessageHandler::publish_message(uint8_t* buffer, const size_t length, u
 	return ret;
 }
 
-void RF24MessageHandler::handle_version_query(void*  msg, uint16_t calling_id)
+void RF24MessageHandler::handle_version_query(void* args, void*  msg, uint16_t calling_id)
 {
-	uint8_t buffer[sizeof(VersionMessage)+sizeof(PayloadHeader)];
-	VersionDataMsg version(buffer,sizeof(buffer),true);
+	PRINT(__FUNCTION__, ENDL)
+	//uint8_t buffer[sizeof(VersionMessage)+sizeof(PayloadHeader)];
+	VersionDataMsg version;
 	version.get_message_payload()->major = VERSION_MAJOR;
 	version.get_message_payload()->minor = VERSION_MINOR;
-	publish_message(buffer,sizeof(buffer),calling_id);
+	//publish_message(buffer,sizeof(buffer),calling_id);
+	publish_message(version.get_message_buffer(),version.get_message_buffer_size(),calling_id);
 }
 
 }

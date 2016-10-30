@@ -1,9 +1,10 @@
 #ifndef MESSAGE_HPP_
 #define MESSAGE_HPP_
 #include "messaging.hpp"
+//#include "mcu_config.hpp"
+#include <stdlib.h>
 
-
-using callback = void (*)(void*,uint16_t);
+using callback = void (*)(void*, void*,uint16_t);
 namespace PeripheralMessages {
 
 struct PayloadHeader
@@ -21,7 +22,8 @@ public:
 	mMessageAllocated(true)
 	{
 		//boo this doesnt work on MSP430 for some reason, malloc as well...
-		mMessageBuffer = new uint8_t[sizeof(PayloadHeader)+sizeof(_messageStruct)];
+		//PRINT("ctor",ENDL)
+		mMessageBuffer = (uint8_t*)malloc(sizeof(PayloadHeader)+sizeof(_messageStruct));
 		Initialize(mMessageBuffer,sizeof(PayloadHeader)+sizeof(_messageStruct),true);
 	}  
 
@@ -44,9 +46,13 @@ public:
 
 	virtual ~Message()
 	{
+
 		if(mMessageAllocated) {
+			//PRINT("dtor",ENDL)
 			mMessageAllocated = false;
-			delete[] mMessageBuffer;
+			//PRINT("free start",ENDL)
+			free( (void*)mMessageBuffer );
+			//PRINT("free end",ENDL)
 		}
 	}
 	
@@ -55,13 +61,18 @@ public:
 		mCallback = cb;
 	}
 
-	static void default_callback(void* msg, uint16_t calling_id) {
+	static void set_callback_arguments(void* ca)
+	{
+		mCallbackArgs = ca;
+	}
+
+	static void default_callback(void* args, void* msg, uint16_t calling_id) {
 		//Do nothing
 	}
 	
 	static void trigger_callback(void* msg, uint16_t calling_id)  //add default callback that warns in compiler? or Assert to force it.
 	{
-		mCallback(msg,calling_id);
+		mCallback(mCallbackArgs, msg, calling_id);
 	}
 	
 	
@@ -119,12 +130,12 @@ private:
     PayloadHeader* mHeader;
 	_messageStruct* mMessage;
 	static callback mCallback;
-
+	static void* mCallbackArgs;
 };
 template<MessageId m, class t>
 callback Message<m,t>::mCallback = Message<m,t>::default_callback;
 template<MessageId m, class t>
-
+void* Message<m,t>::mCallbackArgs = nullptr;
 
 using SwitchEventMsg  = Message<MessageId::SwitchEvent,SwitchMessage>;
 using SwitchDataMsg  = Message<MessageId::SwitchData,SwitchMessage>;
@@ -140,7 +151,7 @@ using VersionDataMsg  = Message<MessageId::VersionData,VersionMessage>;
 using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
 
 
-	
+#define CREATE_MSG()
 	
 
 }
