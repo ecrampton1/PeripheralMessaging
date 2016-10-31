@@ -151,8 +151,8 @@ using TemperatureRequestMsg = Message<MessageId::SwitchRequest,EmptyMessage>;
 using VersionDataMsg  = Message<MessageId::VersionData,VersionMessage>;
 using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
 
-using PingPongDataMsg  = Message<MessageId::VersionData,PingPongMessage>;
-using PingPongQueryMsg = Message<MessageId::VersionQuery,PingPongMessage>;
+using PingPongDataMsg  = Message<MessageId::PingPongData,PingPongMessage>;
+using PingPongQueryMsg = Message<MessageId::PingPongQuery,PingPongMessage>;
 
 
 #define CREATE_MSG()
