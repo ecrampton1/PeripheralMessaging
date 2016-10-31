@@ -5,7 +5,10 @@
 namespace PeripheralMessages
 {
 
+#ifndef FOR_ALL_INCOMING_MESSAGES
+#define FOR_ALL_INCOMING_MESSAGES ALL_MESSAGES \
 
+#endif
 
 void MessageHandler::process_messages(uint8_t* const buffer,const size_t length, uint16_t from_id)
 {
@@ -28,7 +31,9 @@ switch(header->mMessageId) {
 	FOR_ALL_INCOMING_MESSAGES(SWITCH_MESSAGE_HANDLER)
 	//Version query is handled internally
 	//NOTE this means a handler above this needs to properly receive and send version data
+#if FOR_ALL_INCOMING_MESSAGES!=ALL_MESSAGES
 	SWITCH_MESSAGE_HANDLER( VersionQuery )
+#endif
 
 #undef SWITCH_MESSAGE_HANDLER
 	default:

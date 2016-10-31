@@ -10,27 +10,28 @@
 
 //Data sent out from a query
 //Query just asks for the data
-#define MESSAGE_ID_DQ(MSG) \
-	MSG##Query, \
-	MSG##Data
+#define MESSAGE_ID_DQ(MSG,ACTION) \
+	ACTION(MSG##Query) \
+	ACTION(MSG##Data)
 
 //Event is something triggered that is sent out
 //Request is requesting the sensor to do something
-#define MESSAGE_ID_ER(MSG) \
-	MSG##Request, \
-	MSG##Event 
+#define MESSAGE_ID_ER(MSG,ACTION) \
+	ACTION(MSG##Request) \
+	ACTION(MSG##Event)
 
 //In some cases a message set will have all types of messages.
-#define MESSAGE_ID_ALL(MSG) \
-	MESSAGE_ID_DQ(MSG), \
-	MESSAGE_ID_ER(MSG) 
+#define MESSAGE_ID_ALL(MSG,ACTION) \
+	MESSAGE_ID_DQ(MSG,ACTION) \
+	MESSAGE_ID_ER(MSG,ACTION)
 
 #define COMMA(x) x,
 
 #define ALL_MESSAGES(ACTION) \
-	ACTION(MESSAGE_ID_DQ(Version)) \
-	ACTION(MESSAGE_ID_ALL(Switch)) \
-	MESSAGE_ID_ALL(Temperature)
+	MESSAGE_ID_DQ(Version,ACTION) \
+	MESSAGE_ID_ALL(Switch,ACTION) \
+	MESSAGE_ID_ALL(Temperature,ACTION) \
+	MESSAGE_ID_DQ(PingPong,ACTION)
 
 
 namespace PeripheralMessages {
@@ -43,6 +44,12 @@ enum class MessageId : uint16_t
 struct EmptyMessage
 {
 	uint8_t reserved;
+};
+
+
+struct PingPongMessage
+{
+	uint32_t count;
 };
 
 

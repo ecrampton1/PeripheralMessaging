@@ -23,7 +23,8 @@ public:
 	{
 		//boo this doesnt work on MSP430 for some reason, malloc as well...
 		//PRINT("ctor",ENDL)
-		mMessageBuffer = (uint8_t*)malloc(sizeof(PayloadHeader)+sizeof(_messageStruct));
+		mMessageBuffer = (uint8_t*)malloc(sizeof(PayloadHeader)+sizeof(_messageStruct) );
+		//PRINT("mMessageBuffer: ",(int)mMessageBuffer,ENDL)
 		Initialize(mMessageBuffer,sizeof(PayloadHeader)+sizeof(_messageStruct),true);
 	}  
 
@@ -149,6 +150,9 @@ using TemperatureRequestMsg = Message<MessageId::SwitchRequest,EmptyMessage>;
 
 using VersionDataMsg  = Message<MessageId::VersionData,VersionMessage>;
 using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
+
+using PingPongDataMsg  = Message<MessageId::VersionData,PingPongMessage>;
+using PingPongQueryMsg = Message<MessageId::VersionQuery,PingPongMessage>;
 
 
 #define CREATE_MSG()
