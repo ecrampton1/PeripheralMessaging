@@ -44,32 +44,32 @@ enum class MessageId : uint16_t
 struct EmptyMessage
 {
 	uint8_t reserved;
-};
+}__attribute__((packed));
 
 
 struct PingPongMessage
 {
 	uint32_t count;
-};
+}__attribute__((packed));
 
 
 struct VersionMessage
 {
 	uint8_t major;
 	uint8_t minor;
-	uint8_t reserved;
-};
+	uint16_t reserved;
+}__attribute__((packed));
 
 struct SwitchMessage
 {
 	uint8_t switchNumber; //Which switch Up to 256
 	bool    state;  //Whats the state True is on False for off
-};
+}__attribute__((packed));
 
 struct TemperatureMessage
 {
 	int16_t temperature;
-};
+}__attribute__((packed));
 
 }
 

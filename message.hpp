@@ -11,21 +11,26 @@ struct PayloadHeader
 {
 	MessageId mMessageId;
 	uint16_t mReserved; /*reserved? maybe version*/
+} __attribute__((packed));
+
+struct MessageBuffer
+{
+	uint8_t* mBuffer;
+	uint8_t mSize;
 };
 
 template<MessageId _messageId, class _messageStruct>
 class Message
 {
 public:
-
+	static constexpr uint8_t BUFFER_SIZE = sizeof(PayloadHeader) + sizeof(_messageStruct);
 	Message() :
 	mMessageAllocated(true)
 	{
-		//boo this doesnt work on MSP430 for some reason, malloc as well...
-		//PRINT("ctor",ENDL)
-		mMessageBuffer = (uint8_t*)malloc(sizeof(PayloadHeader)+sizeof(_messageStruct) );
-		//PRINT("mMessageBuffer: ",(int)mMessageBuffer,ENDL)
-		Initialize(mMessageBuffer,sizeof(PayloadHeader)+sizeof(_messageStruct),true);
+		//Careful this should work now in MSP430, given there is implementation from the c library
+		mMessageBuffer.mBuffer = (uint8_t*)malloc( BUFFER_SIZE );
+		mMessageBuffer.mSize = BUFFER_SIZE;
+		Initialize(mMessageBuffer.mBuffer,mMessageBuffer.mSize,true);
 	}  
 
 	//Pass in already allocated buffer to be filled with message.
@@ -40,19 +45,21 @@ public:
 	mMessageAllocated(false)
 	{
 		mMessageAllocated = false;
-		mMessageBuffer = buffer;
+		mMessageBuffer.mBuffer = buffer;
+		mMessageBuffer.mSize = bufferLength;
 		Initialize(buffer,bufferLength,createMessage);
 	}
 
 
-	virtual ~Message()
+	~Message()
 	{
 
 		if(mMessageAllocated) {
 			//PRINT("dtor",ENDL)
 			mMessageAllocated = false;
 			//PRINT("free start",ENDL)
-			free( (void*)mMessageBuffer );
+			free( (void*)mMessageBuffer.mBuffer );
+			mMessageBuffer.mSize = 0;
 			//PRINT("free end",ENDL)
 		}
 	}
@@ -75,23 +82,24 @@ public:
 	{
 		mCallback(mCallbackArgs, msg, calling_id);
 	}
-	
-	
-	const size_t get_message_buffer_size()
-	{
-		return sizeof(PayloadHeader)+sizeof(_messageStruct);
-	}
 
-	uint8_t* const get_message_buffer() const
+
+	const MessageBuffer&  get_message_buffer() const
 	{
 		return mMessageBuffer;
 	}
 	
-	
+	//Operator used when passing this message class as an argument
+	//expecting a MessageBuffer struct, this is due to the MSP430 not
+	//having the ability to use virtual and thus interface class.
+	operator const MessageBuffer&() const { return get_message_buffer(); }
+
+
 	PayloadHeader* const get_message_header() const
 	{
 		return mHeader;
 	}
+
 
 	//Be careful returns a pointer that can be modified by user
 	//Will return a nullptr if things are not setup correctly check return
@@ -106,7 +114,8 @@ private:
 	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage)
 	{
 		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
-			mMessageBuffer = nullptr;
+			mMessageBuffer.mBuffer = nullptr;
+			mMessageBuffer.mSize = 0;
 			mHeader = nullptr;
 			mMessage = nullptr;
 		}
@@ -127,7 +136,7 @@ private:
 	}
 
 	bool mMessageAllocated;
-	uint8_t* mMessageBuffer;
+	MessageBuffer mMessageBuffer;
     PayloadHeader* mHeader;
 	_messageStruct* mMessage;
 	static callback mCallback;
@@ -153,9 +162,6 @@ using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
 
 using PingPongDataMsg  = Message<MessageId::PingPongData,PingPongMessage>;
 using PingPongQueryMsg = Message<MessageId::PingPongQuery,PingPongMessage>;
-
-
-#define CREATE_MSG()
 	
 
 }
