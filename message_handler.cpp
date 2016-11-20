@@ -1,7 +1,6 @@
 #include "message_handler.hpp"
 #include <stdio.h>
 
-
 namespace PeripheralMessages
 {
 
@@ -12,12 +11,10 @@ namespace PeripheralMessages
 
 void MessageHandler::process_messages(uint8_t* const buffer,const size_t length, uint16_t from_id)
 {
-
 	if(length < sizeof(PeripheralMessages::PayloadHeader)) {
 		return;
 	}
 	const PeripheralMessages::PayloadHeader* header = reinterpret_cast<const PeripheralMessages::PayloadHeader*>(buffer);
-
 
 switch(header->mMessageId) {
 #define SWITCH_MESSAGE_HANDLER(MESSAGE) \
