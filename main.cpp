@@ -1,41 +1,33 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "message.hpp"
-#include "message_handler.hpp"
+#include "rf24_message_handler_rpi.hpp"
 
-void handler(void* args)
+
+PeripheralMessages::RF24MessageHandlerRpi rpihandler;
+
+
+void handle_ping(void* args, void*  msg, uint16_t calling_id)
 {
-	printf("Handler Called\n");
+	PeripheralMessages::PingPongQueryMsg* ping_ptr =
+			static_cast<PeripheralMessages::PingPongQueryMsg*>(msg);
+	printf("Ping received: %u\n", ping_ptr->get_message_payload()->count);
+
+	PeripheralMessages::PingPongDataMsg pong;
+	pong.get_message_payload()->count = ping_ptr->get_message_payload()->count;
+
+	rpihandler.publish_message(pong.get_message_buffer(),pong.get_message_buffer_size(),calling_id);
 }
-
-/*
-uint8_t process_messages(uint8_t* buffer, const uint8_t size)
-{
-	if(size < sizeof(PayloadHeader)) { return size; }
-	PayloadHeader* payload = static_cast<PayloadHeader*>(buffer);
-
-
-}*/
-
-
-
 
 
 int main()
 {
 
-	PeripheralMessages::VersionQueryMsg::set_callback(&handler,NULL);
-	printf("Messaging test\n");
-	
-	/*processMessages(PeripheralMessages::MessageId::VersionQuery);
-	processMessages(PeripheralMessages::MessageId::TemperatureQuery);
-	processMessages(PeripheralMessages::MessageId::VersionData);*/
-	PeripheralMessages::VersionQueryMsg msg;
-	//processMessages(msg.get_message_buffer(),msg.get_message_buffer_size());
-	
-	PeripheralMessages::MessageHandlerInterface msg_handler;
-	msg_handler.process_messages(msg.get_message_buffer(),msg.get_message_buffer_size());
-	//msg.trigger_callback();
+	PeripheralMessages::PingPongQueryMsg::set_callback(&handle_ping);
+
+	while(1)
+	{
+		rpihandler.service_once();
+	}
 
 }
 
