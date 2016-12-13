@@ -2,6 +2,7 @@
 #define MESSAGING_HPP_
 #include <stdint.h>
 #include <stddef.h>
+#include "mqtt_helper.hpp"
 
 //TODO automate this in the build process
 #define VERSION_MAJOR 0
@@ -33,6 +34,8 @@
 	MESSAGE_ID_ALL(Temperature,ACTION) \
 	MESSAGE_ID_DQ(PingPong,ACTION)
 
+#define MESSAGE_ID_TO_STRING(MSG) #MSG,
+
 
 namespace PeripheralMessages {
 
@@ -41,35 +44,44 @@ enum class MessageId : uint16_t
 	ALL_MESSAGES(COMMA)
 };
 
-struct EmptyMessage
-{
-	uint8_t reserved;
-}__attribute__((packed));
+static const char* MessageIdStrings[] = {
+		ALL_MESSAGES(MESSAGE_ID_TO_STRING)
+};
+
+//const uint16_t MAX_MESSAGE_IDS = sizeof(MessageIdStrings);
 
 
-struct PingPongMessage
-{
-	uint32_t count;
-}__attribute__((packed));
+#define STRUCT_NAME EmptyMessage
+#define STRUCT_FIELDS \
+	X(uint8_t, reserved)
+#include "message_macro_gen.hpp"
 
 
-struct VersionMessage
-{
-	uint8_t major;
-	uint8_t minor;
-	uint16_t reserved;
-}__attribute__((packed));
+#define STRUCT_NAME PingPongMessage
+#define STRUCT_FIELDS \
+	X(uint32_t, count)
+#include "message_macro_gen.hpp"
 
-struct SwitchMessage
-{
-	uint8_t switchNumber; //Which switch Up to 256
-	bool    state;  //Whats the state True is on False for off
-}__attribute__((packed));
 
-struct TemperatureMessage
-{
-	int16_t temperature;
-}__attribute__((packed));
+#define STRUCT_NAME VersionMessage
+#define STRUCT_FIELDS \
+	X(uint8_t, major) \
+	X(uint8_t, minor) \
+	X(uint16_t, reserved)
+#include "message_macro_gen.hpp"
+
+
+#define STRUCT_NAME SwitchMessage
+#define STRUCT_FIELDS \
+	X(uint8_t, switchNumber ) \
+	X(bool,   state )
+#include "message_macro_gen.hpp"
+
+
+#define STRUCT_NAME TemperatureMessage
+#define STRUCT_FIELDS \
+	X(int16_t, temperature)
+#include "message_macro_gen.hpp"
 
 }
 

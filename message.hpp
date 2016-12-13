@@ -1,8 +1,13 @@
 #ifndef MESSAGE_HPP_
 #define MESSAGE_HPP_
 #include "messaging.hpp"
-//#include "mcu_config.hpp"
 #include <stdlib.h>
+
+
+#ifndef EMBEDDED_MESSAGES
+#include <string>
+#include <sstream>      // std::ostringstream
+#endif
 
 using callback = void (*)(void*, void*,uint16_t);
 namespace PeripheralMessages {
@@ -24,6 +29,15 @@ class Message
 {
 public:
 	static constexpr uint8_t BUFFER_SIZE = sizeof(PayloadHeader) + sizeof(_messageStruct);
+
+#ifndef EMBEDDED_MESSAGES
+	Message(const std::string& mqtt_message) :
+		Message()
+	{
+
+	}
+#endif
+
 	Message() :
 	mMessageAllocated(true)
 	{
@@ -83,12 +97,74 @@ public:
 		mCallback(mCallbackArgs, msg, calling_id);
 	}
 
+	const char* get_message_id_string() const
+	{
+		return MessageIdStrings[static_cast<uint16_t>(_messageId)];
+	}
 
 	const MessageBuffer&  get_message_buffer() const
 	{
 		return mMessageBuffer;
 	}
 	
+
+#ifndef EMBEDDED_MESSAGES
+
+	void get_message_as_mqtt_topic(char* buffer, const size_t size)
+	{
+
+		mMessage->to_mqtt_string(buffer,size);
+	}
+
+#if 0
+	static inline std::string message_to_mqtt(uint16_t msgId, SwitchMessage* const msg)
+	{
+		std::ostringstream ostr;
+		ostr << MessageIdStrings[msgId] << "/" << (int)msg->switchNumber << "/" << msg->state;
+		return ostr.str();
+	}
+
+	static inline std::string message_to_mqtt(uint16_t msgId, TemperatureMessage* const msg)
+	{
+		std::ostringstream ostr;
+		ostr << MessageIdStrings[msgId] << "/" << msg->temperature;
+		return ostr.str();
+	}
+
+	static inline std::string message_to_mqtt(uint16_t msgId, EmptyMessage* const msg)
+	{
+		std::ostringstream ostr;
+		ostr << MessageIdStrings[msgId];
+		return ostr.str();
+	}
+
+	static inline std::string message_to_mqtt(uint16_t msgId, VersionMessage* const msg)
+	{
+		std::ostringstream ostr;
+		ostr << MessageIdStrings[msgId] << "/" << msg->major << "/" << msg->minor;
+		return ostr.str();
+	}
+
+	static inline std::string message_to_mqtt(uint16_t msgId, PingPongMessage* const msg)
+	{
+		std::ostringstream ostr;
+		ostr << MessageIdStrings[msgId] << "/" << msg->count;
+		return ostr.str();
+	}
+
+	void set_message_from_mqtt(std::vector<std::string>& msg_sub_strings)
+	{
+		msg_sub_strings(mMessage);
+
+	}
+#endif
+	void set_message_from_mqtt_topic(char* message)
+	{
+		mMessage->from_mqtt_string(message);
+	}
+
+#endif
+
 	//Operator used when passing this message class as an argument
 	//expecting a MessageBuffer struct, this is due to the MSP430 not
 	//having the ability to use virtual and thus interface class.
@@ -111,6 +187,8 @@ public:
 
 private:
 	
+
+
 	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage)
 	{
 		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
