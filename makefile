@@ -4,10 +4,10 @@ TARGET := rf24_gateway
 
 include xcompile.mk
 
-SRCDIRS := ./
+SRCDIRS := ./src ./
 INCDIRS := ../
 
-EXCLUDE_srcs := ./rf24_message_handler.cpp
+EXCLUDE_srcs := ./src/rf24_message_handler.cpp
 
 #$(TARGET)_srcs := $(shell find $(SRCDIRS) -iname *.cpp -o -iname *.c | sort -u)
 srcs := $(shell find $(SRCDIRS) -iname "*.cpp" -o -iname "*.c" | sort -u)
@@ -22,7 +22,7 @@ vpath %.c   $(SRCDIRS) $(BUILD_SOURCE_DIRS)
 vpath %.cpp $(SRCDIRS) $(BUILD_SOURCE_DIRS)
 
 
-INCDIRS += $(SRCDIRS)
+INCDIRS += ./inc
 
 
 #FLAGS   += -g -O0 -Wall                                         
