@@ -200,24 +200,27 @@ private:
 		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
 			mMessageBuffer.mBuffer = nullptr;
 			mMessageBuffer.mSize = 0;
+			mHeader->mNodeSensorId = 0;
 			mHeader = nullptr;
 			mMessage = nullptr;
 		}
 		else {
 			mHeader = reinterpret_cast<PayloadHeader*>(buffer);
 			mMessage = reinterpret_cast<_messageStruct*>(buffer + sizeof(PayloadHeader));
+			//After looking at this I dont know if I like this...Maybe fix this to be more clear due to addition of
 			if(createMessage) {
-				create_message();
+				create_message(sensorId);
 			}
 		}
-		mHeader->mNodeSensorId = sensorId;
+
 	}
 
 	
 	//Assumes pointers are correct no need to check again
-	inline void create_message()
+	inline void create_message(uint8_t sensorId)
 	{
 		mHeader->mMessageId = _messageId;
+		mHeader->mNodeSensorId = sensorId;
 	}
 
 	bool mMessageAllocated;

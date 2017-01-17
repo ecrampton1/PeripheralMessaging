@@ -20,7 +20,7 @@ switch(header->mMessageId) {
 #define SWITCH_MESSAGE_HANDLER(MESSAGE) \
 	case PeripheralMessages::MessageId::MESSAGE: \
 		{ \
-		 MESSAGE##Msg msg(buffer,length); \
+		 MESSAGE##Msg msg(buffer,length,false); \
 		 MESSAGE##Msg::trigger_callback(static_cast<void*>(&msg),from_id); \
 		 break; \
 		}
