@@ -15,7 +15,8 @@ namespace PeripheralMessages {
 struct PayloadHeader
 {
 	MessageId mMessageId;
-	uint16_t mReserved; /*reserved? maybe version*/
+	uint8_t mNodeSensorId; //0-256 sensor id each sensor must have number to be used by handler
+	uint8_t mReserved; /*reserved? maybe version*/
 } __attribute__((packed));
 
 struct MessageBuffer
@@ -38,30 +39,30 @@ public:
 	}
 #endif
 
-	Message() :
+	Message(uint8_t sensorId=0) :
 	mMessageAllocated(true)
 	{
 		//Careful this should work now in MSP430, given there is implementation from the c library
 		mMessageBuffer.mBuffer = (uint8_t*)malloc( BUFFER_SIZE );
 		mMessageBuffer.mSize = BUFFER_SIZE;
-		Initialize(mMessageBuffer.mBuffer,mMessageBuffer.mSize,true);
+		Initialize(mMessageBuffer.mBuffer,mMessageBuffer.mSize,true,sensorId);
 	}  
 
 	//Pass in already allocated buffer to be filled with message.
-	Message(uint8_t* buffer, uint8_t bufferLength) :
+	Message(uint8_t* buffer, uint8_t bufferLength,uint8_t sensorId=0) :
 	mMessageAllocated(false)
 	{
-		Initialize(buffer,bufferLength,true);
+		Initialize(buffer,bufferLength,true,sensorId);
 	}
 
    //Creates new message if true
-	Message(uint8_t* buffer, uint8_t bufferLength, bool createMessage) :
+	Message(uint8_t* buffer, uint8_t bufferLength, bool createMessage,uint8_t sensorId=0) :
 	mMessageAllocated(false)
 	{
 		mMessageAllocated = false;
 		mMessageBuffer.mBuffer = buffer;
 		mMessageBuffer.mSize = bufferLength;
-		Initialize(buffer,bufferLength,createMessage);
+		Initialize(buffer,bufferLength,createMessage,sensorId);
 	}
 
 
@@ -107,6 +108,11 @@ public:
 		return mMessageBuffer;
 	}
 	
+	void set_sensor_id(const uint8_t sensorId)
+	{
+		mHeader->mNodeSensorId = sensorId;
+	}
+
 
 #ifndef EMBEDDED_MESSAGES
 
@@ -189,7 +195,7 @@ private:
 	
 
 
-	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage)
+	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage, uint8_t sensorId)
 	{
 		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
 			mMessageBuffer.mBuffer = nullptr;
@@ -204,6 +210,7 @@ private:
 				create_message();
 			}
 		}
+		mHeader->mNodeSensorId = sensorId;
 	}
 
 	

@@ -1,11 +1,10 @@
 #ifndef MESSAGING_HANDLER_HPP_
 #define MESSAGING_HANDLER_HPP_
 #include "message.hpp"
+#include "messaging_config.hpp"
 
 namespace PeripheralMessages
 {
-
-static constexpr uint8_t USERTYPE = 66;
 
 class MessageHandler
 {

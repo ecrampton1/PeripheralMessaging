@@ -73,8 +73,7 @@ static const char* MessageIdStrings[] = {
 
 #define STRUCT_NAME SwitchMessage
 #define STRUCT_FIELDS \
-	X(uint8_t, switchNumber ) \
-	X(bool,   state )
+	X(int8_t,   state )
 #include "message_macro_gen.hpp"
 
 
