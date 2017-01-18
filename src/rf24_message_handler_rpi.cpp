@@ -6,6 +6,7 @@ namespace PeripheralMessages
 {
 
 static constexpr uint8_t NODEID = 0;
+static constexpr uint8_t USERTYPE = 66;
 
 
 

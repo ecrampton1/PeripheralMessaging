@@ -10,9 +10,12 @@ MqttRf24Bridge::MqttRf24Bridge()
 
 void MqttRf24Bridge::handle_mqtt_topic(const struct mosquitto_message *message)
 {
-	if(strcmp(message->topic,RF_TOPIC_IN) == 0) {
-		mIncomingTopics.push((const char*)message->payload);
+	printf("%s %s\n",message->topic,(const char*)message->payload);
+	if(strncmp(message->topic,RF_TOPIC_IN,sizeof(RF_TOPIC_IN)) == 0) {
+		string_double strs = std::make_tuple (std::string((const char*)message->topic),std::string((const char*)message->payload));
+		mIncomingTopics.push(strs);
 	}
+	printf("%u",mIncomingTopics.empty());
 }
 
 
@@ -25,7 +28,7 @@ void MqttRf24Bridge::init()
 	ALL_MESSAGES(INIT_MSG_HANDLERS)
 #undef INIT_HANDLERS
 	try {
-		mMqttWrapper = std::unique_ptr<mqttwrapper>(new mqttwrapper(NULL,RF_TOPIC_IN,MQTT_IP,MQTT_PORT,true));
+		mMqttWrapper = std::unique_ptr<mqttwrapper>(new mqttwrapper(NULL,"#",MQTT_IP,MQTT_PORT,true));
 		mMqttWrapper->set_message_received_cb(std::bind(&MqttRf24Bridge::handle_mqtt_topic,this, std::placeholders::_1));
 	} catch (const std::exception& e) {
 		std::cout << e.what() << std::endl;
@@ -34,49 +37,60 @@ void MqttRf24Bridge::init()
 
 void MqttRf24Bridge::service_once()
 {
+	mMqttWrapper->service_once();
+
 	//handle incoming topics
 	if(!mIncomingTopics.empty()) {
-		std::string message = mIncomingTopics.front();
-		mqtt_to_rf24(message);
+		auto topic = mIncomingTopics.front();
+		mqtt_to_rf24(topic);
 		mIncomingTopics.pop();
 	}
 	//handle incoming rf network messages
 	mRPIHandler.service_once();
 }
 
-void MqttRf24Bridge::mqtt_to_rf24(std::string message)
+void MqttRf24Bridge::mqtt_to_rf24(string_double strs)
 {
 
-	std::vector<std::string> substrs = split_mqtt_string(message);
-	if(substrs.size() < 3) {
+	std::vector<std::string> substrs = split_string(std::get<0>(strs));
+
+	for (auto i = substrs.begin(); i != substrs.end(); ++i)
+	    std::cout << *i << ' ';
+	std::cout << std::endl;
+	if(substrs.size() < 1) {
 		return; //too small of a string to have any information
 	}
 	uint16_t node;
-	std::istringstream ( substrs[0] ) >> node;
+	std::istringstream ( substrs[2] ) >> node;
 
-	PeripheralMessages::MessageId id;
+	int16_t sensorId;
+	std::istringstream ( substrs[3] ) >> sensorId;
+
+
+	PeripheralMessages::MessageId msgId;
 	bool found = false;
 	//convert enum message to number instead of the string for the mqtt string.
 	for(size_t i = 0; i < sizeof(PeripheralMessages::MessageIdStrings); ++i) {
-		if( strcmp(substrs[1].c_str(),PeripheralMessages::MessageIdStrings[i]) == 0) {
-			id = static_cast<PeripheralMessages::MessageId>(i);
+		if( strcmp(substrs[4].c_str(),PeripheralMessages::MessageIdStrings[i]) == 0) {
+			printf("%d\n",i);
+			msgId = static_cast<PeripheralMessages::MessageId>(i);
 			found = true;
 			break;
 		}
 	}
 	//if the mqtt message name matched an id forward to the correct node
 	if(found){
-		send_rf24_message(node,id,substrs[2]);
+		send_rf24_message(node, sensorId, msgId,std::get<1>(strs).c_str());
 	}
 }
 
-void MqttRf24Bridge::send_rf24_message(uint16_t node, PeripheralMessages::MessageId id, std::string& message_string)
+void MqttRf24Bridge::send_rf24_message(uint16_t node, uint8_t sensorId, PeripheralMessages::MessageId msgId, std::string message_string)
 {
-	switch(id) {
+	switch(msgId) {
 	#define SWITCH_MESSAGE_CREATOR(MESSAGE) \
 		case PeripheralMessages::MessageId::MESSAGE: \
 		{ \
-			PeripheralMessages::MESSAGE##Msg msg; \
+			PeripheralMessages::MESSAGE##Msg msg(sensorId); \
 			char *cstr = new char[message_string.length() + 1]; \
 			strcpy(cstr, message_string.c_str()); \
 			msg.set_message_from_mqtt_topic(cstr); \
@@ -96,29 +110,24 @@ void MqttRf24Bridge::send_rf24_message(uint16_t node, PeripheralMessages::Messag
 
 
 
-std::vector<std::string> MqttRf24Bridge::split_mqtt_string(std::string &str)
+std::vector<std::string> MqttRf24Bridge::split_string(std::string str)
 {
+	std::cout << str << std::endl;
+	std::vector<std::string> sub_strs;
+	char delimiter = '/';
 
-	std::vector<std::string> mqtt_strs;
-	std::size_t start = 0;
-	std::size_t end = 0;
-
-	//Pull out the Node ID and Message Id String
-	for(int i = 0; i < 2; ++i)
-	{
-		end = str.find('/',start);
-		if(end!=std::string::npos) {
-			mqtt_strs.push_back(str.substr(start,end-start));
-			start = end+1;
-		}
-		else {
-			mqtt_strs.clear();
-			return mqtt_strs;
-		}
+	std::stringstream ss(str);
+	std::string item;
+	std::vector<std::string> tokens;
+	while (getline(ss, item, delimiter)) {
+		std::cout << item << std::endl;
+		sub_strs.push_back(item);
 	}
-	mqtt_strs.push_back(str.substr(start));
-	return mqtt_strs;
+
+	return sub_strs;
 }
+
+
 
 /*std::stringstream ss(s);
 	std::string item;

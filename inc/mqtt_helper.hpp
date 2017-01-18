@@ -7,47 +7,47 @@
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, bool val)
 {
-	return to_mqtt_string_helper(buffer,  size, (int8_t) val);
+	return snprintf(buffer, size, "%d", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, int8_t val)
 {
-	return snprintf(buffer, size, "%d/", val);
+	return snprintf(buffer, size, "%d", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, int16_t val)
 {
-	return snprintf(buffer, size, "%d/", val);
+	return snprintf(buffer, size, "%d", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, int32_t val)
 {
-	return snprintf(buffer, size, "%d/", val);
+	return snprintf(buffer, size, "%d", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, uint8_t val)
 {
-	return snprintf(buffer, size, "%u/", val);
+	return snprintf(buffer, size, "%u", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, uint16_t val)
 {
-	return snprintf(buffer, size, "%u/", val);
+	return snprintf(buffer, size, "%u", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, uint32_t val)
 {
-	return snprintf(buffer, size, "%u/", val);
+	return snprintf(buffer, size, "%u", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, float val)
 {
-	return snprintf(buffer, size, "%.2f/", val);
+	return snprintf(buffer, size, "%.2f", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, char* val)
 {
-	return snprintf(buffer, size, "%s/", val);
+	return snprintf(buffer, size, "%s", val);
 }
 
 inline void mqtt_string_helper(const char* buffer, bool& val)

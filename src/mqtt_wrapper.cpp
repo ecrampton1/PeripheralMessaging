@@ -4,6 +4,7 @@
 #include "mqtt_wrapper.hpp"
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 mqttwrapper::mqttwrapper(const char* id,const char*  topic, const char* host, int port, bool sub) :
 mosqpp::mosquittopp(id),
@@ -23,7 +24,7 @@ mPublished(false)
 	connect(mHost,     // non blocking connection to broker request
 	mPort,
 	mKeepAlive);
-	loop_start();            // Start thread managing connection / publish / subscribe
+	loop(0,1);            // Start mqtt
 };
 
 mqttwrapper::~mqttwrapper() {
@@ -57,6 +58,15 @@ bool mqttwrapper::send_message(const  char * message, const char* topic)
 	return mPublished;
 }
 
+void mqttwrapper::service_once()
+{
+	int ret = loop(0,1);            //service mqtt
+	if(ret != MOSQ_ERR_SUCCESS) {
+		printf("Error mqtt connection lost\n");
+		sleep(10);
+		reconnect();
+	}
+}
 
 void mqttwrapper::on_disconnect(int rc) {
  std::cout << ">> myMosq - disconnection(" << rc << ")" << std::endl;

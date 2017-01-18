@@ -9,7 +9,7 @@ public:
 	virtual ~mqttwrapper();
 	bool send_message(const char * _message,const char* topic=NULL);
 	void set_message_received_cb(std::function<void (const struct mosquitto_message *message)> callback);
-
+	void service_once();
 private:
 	const char* mHost;
 	const char* mId;
