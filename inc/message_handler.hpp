@@ -1,7 +1,7 @@
 #ifndef MESSAGING_HANDLER_HPP_
 #define MESSAGING_HANDLER_HPP_
 #include "message.hpp"
-#include "messaging_config.hpp"
+
 
 namespace PeripheralMessages
 {

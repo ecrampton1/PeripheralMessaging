@@ -89,7 +89,7 @@ public:
 		mCallbackArgs = ca;
 	}
 
-	static void default_callback(void* args, void* msg, uint16_t calling_id) {
+	static void default_callback(void* args, void* msg, uint16_t callingId) {
 		//Do nothing
 	}
 	
