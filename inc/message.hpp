@@ -240,10 +240,10 @@ using SwitchDataMsg  = Message<MessageId::SwitchData,SwitchMessage>;
 using SwitchQueryMsg = Message<MessageId::SwitchQuery,SwitchMessage>;
 using SwitchRequestMsg = Message<MessageId::SwitchRequest,SwitchMessage>;
 
-using TemperatureEventMsg  = Message<MessageId::SwitchEvent,TemperatureMessage>;
-using TemperatureDataMsg  = Message<MessageId::SwitchData,TemperatureMessage>;
-using TemperatureQueryMsg = Message<MessageId::SwitchQuery,EmptyMessage>;
-using TemperatureRequestMsg = Message<MessageId::SwitchRequest,EmptyMessage>;
+using TemperatureEventMsg  = Message<MessageId::TemperatureEvent,TemperatureMessage>;
+using TemperatureDataMsg  = Message<MessageId::TemperatureData,TemperatureMessage>;
+using TemperatureQueryMsg = Message<MessageId::TemperatureQuery,EmptyMessage>;
+using TemperatureRequestMsg = Message<MessageId::TemperatureRequest,EmptyMessage>;
 
 using VersionDataMsg  = Message<MessageId::VersionData,VersionMessage>;
 using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;

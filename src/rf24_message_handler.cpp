@@ -21,7 +21,9 @@ void RF24MessageHandler::begin()
 	VersionQueryMsg::set_callback(&RF24MessageHandler::handle_version_query);
 	//VersionQueryMsg::set_callback_arguments(this);
   // Connect to the mesh
-	RF24Mesh::begin();
+	if(RF24Mesh::begin() == 0) {
+		while(1);
+	}
 }
 
 
@@ -30,12 +32,17 @@ void RF24MessageHandler::serviceOnce()
 	RF24Mesh::update();
 
 	while (RF24Network::available()) {
-		RF24NetworkHeader header;
+		//P1OUT ^= 0x01;
+		RF24NetworkHeader* header = reinterpret_cast<RF24NetworkHeader*>(mHandlerBuffer);
 		RF24Network::peek(header);
+
+
 		//If message is for us.
-		if(header.type == USERTYPE) {
-			size_t length = RF24Network::read(header,mHandlerBuffer,sizeof(mHandlerBuffer));
-			MessageHandler::process_messages(mHandlerBuffer,length,header.reserved);
+		if(header->type == USERTYPE) {
+
+			uint8_t *msg = &mHandlerBuffer[sizeof(RF24NetworkHeader)];
+			size_t length = RF24Network::read(header,msg,sizeof(mHandlerBuffer));
+			MessageHandler::process_messages(msg,length,header->reserved);
 		}
 		else { //Else read it and throw it away
 
@@ -50,7 +57,6 @@ bool RF24MessageHandler::publish_message(const MessageBuffer& buffer,const  uint
 {
 	bool ret = false;
 	if (!RF24Mesh::write(buffer.mBuffer, USERTYPE, buffer.mSize, node)) {
-
       // If a write fails, check connectivity to the mesh network
       if ( ! RF24Mesh::checkConnection() ) {
         //refresh the network address
