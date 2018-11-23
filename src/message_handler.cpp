@@ -1,4 +1,5 @@
 #include "message_handler.hpp"
+#include "messaging_config.hpp"
 #include <stdio.h>
 
 namespace PeripheralMessages

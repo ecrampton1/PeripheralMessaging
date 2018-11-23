@@ -17,7 +17,7 @@ static void serviceOnce();
 
 private:
 
-static constexpr int BUFFER_SIZE = 32;
+static constexpr int BUFFER_SIZE = 61;
 static uint8_t mHandlerBuffer[BUFFER_SIZE];
 static void handle_version_query(void* args, void* msg,const uint16_t calling_id);
 };

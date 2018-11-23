@@ -1,6 +1,7 @@
 #include "rf24_message_handler.hpp"
 #include "RF24Network.h"
 #include "RF24Mesh.h"
+#include "messaging_config.hpp"
 #include <stdio.h>
 
 
@@ -36,10 +37,8 @@ void RF24MessageHandler::serviceOnce()
 		RF24NetworkHeader* header = reinterpret_cast<RF24NetworkHeader*>(mHandlerBuffer);
 		RF24Network::peek(header);
 
-
 		//If message is for us.
 		if(header->type == USERTYPE) {
-
 			uint8_t *msg = &mHandlerBuffer[sizeof(RF24NetworkHeader)];
 			size_t length = RF24Network::read(header,msg,sizeof(mHandlerBuffer));
 			MessageHandler::process_messages(msg,length,header->reserved);
@@ -64,7 +63,6 @@ bool RF24MessageHandler::publish_message(const MessageBuffer& buffer,const  uint
       } else {
 			//connection is ok but send still failed
 		}
-
     } 
 	else {
 		ret = true;
