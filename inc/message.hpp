@@ -200,7 +200,6 @@ private:
 		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
 			mMessageBuffer.mBuffer = nullptr;
 			mMessageBuffer.mSize = 0;
-			mHeader->mNodeSensorId = 0;
 			mHeader = nullptr;
 			mMessage = nullptr;
 		}

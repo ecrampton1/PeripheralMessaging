@@ -1,6 +1,29 @@
 #include <stdio.h>
-#include "mqtt_rf24_bridge.hpp"
+//#include "mqtt_rf24_bridge.hpp"
+#include "rfm69_message_handler.hpp"
+#include "sys_wrapper.hpp"
 
+
+using Handler = PeripheralMessages::RFM69Handler;
+
+uint8_t PongerAddress = 9;
+uint8_t PingerAddress = 10;
+
+static uint32_t TimeSinceSent = 0;
+static PeripheralMessages::PingPongQueryMsg ping;
+
+void handle_pong(void* args, void*  msg, uint16_t calling_id)
+{
+	PeripheralMessages::PingPongDataMsg* pong_ptr =
+			static_cast<PeripheralMessages::PingPongDataMsg*>(msg);
+	printf("Pong received: %u, Node: %d \n", pong_ptr->get_message_payload()->count, calling_id);
+
+	
+	++ping.get_message_payload()->count;
+
+	Handler::publish_message(ping,calling_id);
+	TimeSinceSent = SysWrapper::millis();
+}
 
 #if 0
 PeripheralMessages::RF24MessageHandlerRpi rpihandler;
@@ -11,17 +34,6 @@ const int MQTT_PORT = 1883;
 
 std::queue<std::string> incoming_topics;
 
-/*void handle_ping(void* args, void*  msg, uint16_t calling_id)
-{
-	PeripheralMessages::PingPongQueryMsg* ping_ptr =
-			static_cast<PeripheralMessages::PingPongQueryMsg*>(msg);
-	printf("Ping received: %u, Node: %d \n", ping_ptr->get_message_payload()->count, calling_id);
-
-	PeripheralMessages::PingPongDataMsg pong;
-	pong.get_message_payload()->count = ping_ptr->get_message_payload()->count;
-
-	rpihandler.publish_message(pong,calling_id);
-}*/
 
 /*void mqtt_callback(const struct mosquitto_message *message)
 {
@@ -61,19 +73,28 @@ void init()
 	}
 }
 #endif
-
+static uint64_t TIMEOUT = 50;
 int main()
 {
 	/*PeripheralMessages::SwitchRequestMsg msg;
 	msg.get_message_payload()->switchNumber = 0;
 	msg.get_message_payload()->state = true;
 	printf("%s\n", msg.get_message_as_mqtt_topic().c_str());*/
-	//PeripheralMessages::PingPongQueryMsg::set_callback(&handle_message<PeripheralMessages::PingPongQueryMsg>);
-	MqttRf24Bridge bridge;
-
+	Handler::begin(PingerAddress);
+	PeripheralMessages::PingPongDataMsg::set_callback(&handle_pong);
+	//MqttRf24Bridge bridge;
+	
+	Handler::publish_message(ping,PongerAddress);
+	TimeSinceSent = SysWrapper::millis();
+	printf("Setup\n");
 	while(1)
 	{
-		bridge.service_once();
+		Handler::serviceOnce();
+		if((TimeSinceSent + TIMEOUT) < SysWrapper::millis()){
+			printf(".\n");
+			Handler::publish_message(ping,PongerAddress);
+			TimeSinceSent = SysWrapper::millis();
+		}
 	}
 
 }

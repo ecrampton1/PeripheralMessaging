@@ -1,6 +1,16 @@
 #include "rfm69_message_handler.hpp"
-#include "mcu_config.hpp"
+#ifdef __arm__
+#include "spi_wrapper.hpp"
+#include "gpio_wrapper.hpp"
+#include "sys_wrapper.hpp"
+#include "rfm69/rfm69.hpp"
 
+using DIO0 = GpioWrapper<4>;
+using CS = GpioWrapper<1>;
+using RF = Rfm69< SpiDev0, SysWrapper,  CS, DIO0, CarrierFrequency::FREQUENCY_915>;
+#else
+#include "mcu_config.hpp"
+#endif
 
 namespace PeripheralMessages
 {
@@ -10,22 +20,23 @@ uint8_t RFM69Handler::mHandlerBuffer[BUFFER_SIZE];
 
 void RFM69Handler::begin(uint8_t node)
 {
-	rfm69::init();
-	rfm69::enableRx();
-	rfm69::setNodeAddress(node);
+	RF::init();
+	RF::enableRx();
+	RF::setNodeAddress(node);
+	RF::setNetworkAddress(100);
 }
 
 
 void RFM69Handler::serviceOnce()
 {
-	while (rfm69::isPayloadReady() ) {
-
-		rfm69::readPayload(mHandlerBuffer,sizeof(mHandlerBuffer));
-
+	while (RF::isPayloadReady() ) {
+		
+		RF::readPayload(mHandlerBuffer,sizeof(mHandlerBuffer));
+		RF::enableRx();
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(mHandlerBuffer);
-
-		//If message is for us.
-		MessageHandler::process_messages(mHandlerBuffer,header->Length,header->Source);
+		uint8_t *msg = &mHandlerBuffer[sizeof(PacketHeader)];
+		MessageHandler::process_messages(msg,header->Length,header->Source);
+		const PeripheralMessages::PayloadHeader* pHeader = reinterpret_cast<const PeripheralMessages::PayloadHeader*>(msg);
 	}
 }
 
@@ -33,8 +44,8 @@ void RFM69Handler::serviceOnce()
 
 bool RFM69Handler::publish_message(const MessageBuffer& buffer,const  uint16_t node)
 {
-	bool ret = rfm69::writePayloadWithAck(buffer.mBuffer,buffer.mSize,node);
-
+	bool ret = RF::writePayloadWithAck(buffer.mBuffer,buffer.mSize,node);
+	RF::enableRx();
 	return ret;
 }
 
