@@ -11,21 +11,23 @@ uint8_t RFM69Handler::mHandlerBuffer[BUFFER_SIZE];
 void RFM69Handler::begin(uint8_t node)
 {
 	rfm69::init();
-	rfm69::enableRx();
 	rfm69::setNodeAddress(node);
+	rfm69::setNetworkAddress(100);
+	rfm69::enableRx();
 }
 
 
 void RFM69Handler::serviceOnce()
 {
 	while (rfm69::isPayloadReady() ) {
+		PRINT("Ry\n")
 
-		rfm69::readPayload(mHandlerBuffer,sizeof(mHandlerBuffer));
-
+		uint8_t length = rfm69::readPayload(mHandlerBuffer,sizeof(mHandlerBuffer));
+		rfm69::enableRx();
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(mHandlerBuffer);
-
+		uint8_t *msg = &mHandlerBuffer[sizeof(PacketHeader)];
 		//If message is for us.
-		MessageHandler::process_messages(mHandlerBuffer,header->Length,header->Source);
+		MessageHandler::process_messages(msg,length - sizeof(PacketHeader),header->Source);
 	}
 }
 
@@ -34,7 +36,7 @@ void RFM69Handler::serviceOnce()
 bool RFM69Handler::publish_message(const MessageBuffer& buffer,const  uint16_t node)
 {
 	bool ret = rfm69::writePayloadWithAck(buffer.mBuffer,buffer.mSize,node);
-
+	rfm69::enableRx();
 	return ret;
 }
 

@@ -59,9 +59,6 @@ public:
 	Message(uint8_t* buffer, uint8_t bufferLength, bool createMessage,uint8_t sensorId=0) :
 	mMessageAllocated(false)
 	{
-		mMessageAllocated = false;
-		mMessageBuffer.mBuffer = buffer;
-		mMessageBuffer.mSize = bufferLength;
 		Initialize(buffer,bufferLength,createMessage,sensorId);
 	}
 
@@ -111,6 +108,11 @@ public:
 	void set_sensor_id(const uint8_t sensorId)
 	{
 		mHeader->mNodeSensorId = sensorId;
+	}
+
+	bool is_message_valid()
+	{
+		return ( nullptr != mMessageBuffer.mBuffer || mMessageBuffer.mSize > 0);
 	}
 
 
@@ -197,7 +199,7 @@ private:
 
 	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage, uint8_t sensorId)
 	{
-		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
+		if( nullptr == buffer || bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
 			mMessageBuffer.mBuffer = nullptr;
 			mMessageBuffer.mSize = 0;
 			mHeader->mNodeSensorId = 0;
@@ -205,6 +207,8 @@ private:
 			mMessage = nullptr;
 		}
 		else {
+			mMessageBuffer.mBuffer = buffer;
+			mMessageBuffer.mSize = sizeof(PayloadHeader) + sizeof(_messageStruct);
 			mHeader = reinterpret_cast<PayloadHeader*>(buffer);
 			mMessage = reinterpret_cast<_messageStruct*>(buffer + sizeof(PayloadHeader));
 			//After looking at this I dont know if I like this...Maybe fix this to be more clear due to addition of
