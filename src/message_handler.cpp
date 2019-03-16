@@ -25,7 +25,9 @@ switch(header->mMessageId) {
 	case PeripheralMessages::MessageId::MESSAGE: \
 		{ \
 		 MESSAGE##Msg msg(buffer,length,false); \
-		 MESSAGE##Msg::trigger_callback(static_cast<void*>(&msg),from_id); \
+		 if(msg.isMessageValid()) { \
+		 	MESSAGE##Msg::trigger_callback(static_cast<void*>(&msg),from_id); \
+		 } \
 		 break; \
 		}
 

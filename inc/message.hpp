@@ -7,6 +7,7 @@
 #ifndef EMBEDDED_MESSAGES
 #include <string>
 #include <sstream>      // std::ostringstream
+#include <stdio.h>
 #endif
 
 using callback = void (*)(void*, void*,uint16_t);
@@ -111,6 +112,14 @@ public:
 	void set_sensor_id(const uint8_t sensorId)
 	{
 		mHeader->mNodeSensorId = sensorId;
+	}
+	
+	bool isMessageValid()
+	{
+		return mMessageBuffer.mBuffer != nullptr &&
+			mMessageBuffer.mSize != 0 &&
+			mHeader != nullptr &&
+			mMessage != nullptr;
 	}
 
 

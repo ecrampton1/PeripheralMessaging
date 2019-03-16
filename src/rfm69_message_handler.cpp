@@ -42,21 +42,21 @@ void RFM69Handler::serviceOnce()
 
 
 
-bool RFM69Handler::publish_message(const MessageBuffer& buffer,const  uint16_t node)
+bool RFM69Handler::publishMessage(const MessageBuffer& buffer,const  uint16_t node)
 {
-	bool ret = RF::writePayloadWithAck(buffer.mBuffer,buffer.mSize,node);
+	bool ret = RF::writePayload(buffer.mBuffer,buffer.mSize,node);
 	RF::enableRx();
 	return ret;
 }
 
-void RFM69Handler::handle_version_query(void* args, void* msg,const uint16_t calling_id)
+void RFM69Handler::handleVersionQuery(void* args, void* msg,const uint16_t calling_id)
 {
 	//PRINT(__FUNCTION__, ENDL)
 	VersionDataMsg version;
 	version.get_message_payload()->major = VERSION_MAJOR;
 	version.get_message_payload()->minor = VERSION_MINOR;
 	//publish_message(buffer,sizeof(buffer),calling_id);
-	publish_message(version , calling_id);
+	publishMessage(version , calling_id);
 }
 
 }

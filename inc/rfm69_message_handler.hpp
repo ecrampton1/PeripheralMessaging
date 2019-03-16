@@ -11,15 +11,15 @@ class RFM69Handler
 public:
 
 static void begin(uint8_t node);
-static void initialize_incoming_messages();
-static bool publish_message(const MessageBuffer& buffer, const uint16_t node=0);
+static void initializeIncomingMessages();
+static bool publishMessage(const MessageBuffer& buffer, const uint16_t node=0);
 static void serviceOnce();
 
 private:
 
 static constexpr int BUFFER_SIZE = 32;
 static uint8_t mHandlerBuffer[BUFFER_SIZE];
-static void handle_version_query(void* args, void* msg,const uint16_t calling_id);
+static void handleVersionQuery(void* args, void* msg,const uint16_t calling_id);
 };
 
 }
