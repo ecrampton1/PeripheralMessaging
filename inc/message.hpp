@@ -4,9 +4,10 @@
 #include <stdlib.h>
 
 
-#ifndef EMBEDDED_MESSAGES
+#ifdef __ARM__
 #include <string>
 #include <sstream>      // std::ostringstream
+#include <stdio.h>
 #endif
 
 using callback = void (*)(void*, void*,uint16_t);
@@ -31,7 +32,7 @@ class Message
 public:
 	static constexpr uint8_t BUFFER_SIZE = sizeof(PayloadHeader) + sizeof(_messageStruct);
 
-#ifndef EMBEDDED_MESSAGES
+#ifdef __ARM__
 	Message(const std::string& mqtt_message) :
 		Message()
 	{
@@ -109,6 +110,14 @@ public:
 	{
 		mHeader->mNodeSensorId = sensorId;
 	}
+	
+	bool isMessageValid()
+	{
+		return mMessageBuffer.mBuffer != nullptr &&
+			mMessageBuffer.mSize != 0 &&
+			mHeader != nullptr &&
+			mMessage != nullptr;
+	}
 
 	bool is_message_valid()
 	{
@@ -116,7 +125,7 @@ public:
 	}
 
 
-#ifndef EMBEDDED_MESSAGES
+#ifdef __ARM__
 
 	void get_message_as_mqtt_topic(char* buffer, const size_t size)
 	{
@@ -195,14 +204,11 @@ public:
 
 private:
 	
-
-
 	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage, uint8_t sensorId)
 	{
 		if( nullptr == buffer || bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
 			mMessageBuffer.mBuffer = nullptr;
 			mMessageBuffer.mSize = 0;
-			mHeader->mNodeSensorId = 0;
 			mHeader = nullptr;
 			mMessage = nullptr;
 		}

@@ -12,18 +12,20 @@ namespace PeripheralMessages
 
 void MessageHandler::process_messages(uint8_t* const buffer,const size_t length, uint16_t from_id)
 {
-	if(length < sizeof(PeripheralMessages::PayloadHeader)) {
-		return;
-	}
+	
 	const PeripheralMessages::PayloadHeader* header = reinterpret_cast<const PeripheralMessages::PayloadHeader*>(buffer);
-
+	
+	if(length <= sizeof(PeripheralMessages::PayloadHeader)) {
+		return;
+	}	
+	
 switch(header->mMessageId) {
 #define SWITCH_MESSAGE_HANDLER(MESSAGE) \
 	case PeripheralMessages::MessageId::MESSAGE: \
 		{ \
 		 MESSAGE##Msg msg(buffer,length,false); \
-		 if(msg.is_message_valid()) { \
-			 MESSAGE##Msg::trigger_callback(static_cast<void*>(&msg),from_id); \
+		 if(msg.isMessageValid()) { \
+		 	MESSAGE##Msg::trigger_callback(static_cast<void*>(&msg),from_id); \
 		 } \
 		 break; \
 		}

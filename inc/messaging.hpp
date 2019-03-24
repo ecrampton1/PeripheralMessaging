@@ -43,6 +43,7 @@ namespace PeripheralMessages {
 enum class MessageId : uint16_t
 {
 	ALL_MESSAGES(COMMA)
+	MESSAGE_EOL	
 };
 
 static const char* MessageIdStrings[] = {

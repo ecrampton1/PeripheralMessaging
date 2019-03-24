@@ -90,7 +90,6 @@ void mqttwrapper::set_message_received_cb(std::function<void (const struct mosqu
 
 void mqttwrapper::on_message(const struct mosquitto_message *message)
 {
-	std::cout << "received message" <<std::endl;
 	mMessageReceivedCb(message);
 }
 

@@ -1,13 +1,13 @@
 SHELL := /bin/bash
 
-TARGET := rf24_gateway
+TARGET := rf69_gateway
 
 include xcompile.mk
 
 SRCDIRS := ./src ./
-INCDIRS := ../
+INCDIRS := ../ 
 
-EXCLUDE_srcs := ./src/rf24_message_handler.cpp
+EXCLUDE_srcs := ./src/rf24_message_handler_rpi.cpp ./src/mqtt_rf24_bridge.cpp  ./src/rf24_message_handler.cpp
 
 #$(TARGET)_srcs := $(shell find $(SRCDIRS) -iname *.cpp -o -iname *.c | sort -u)
 srcs := $(shell find $(SRCDIRS) -iname "*.cpp" -o -iname "*.c" | sort -u)
@@ -22,13 +22,13 @@ vpath %.c   $(SRCDIRS) $(BUILD_SOURCE_DIRS)
 vpath %.cpp $(SRCDIRS) $(BUILD_SOURCE_DIRS)
 
 
-INCDIRS += ./inc
+INCDIRS += ./inc ./external_libraries/RFM69/inc 
 
 
 #FLAGS   += -g -O0 -Wall                                         
-FLAGS   += $(addprefix -I, $(INCDIRS))
-CXXFLAGS += $(FLAGS) -lrf24-bcm -lrf24network -lrf24mesh -lmosquitto -lmosquittopp
-CFLAGS   += $(FLAGS) -lrf24-bcm -lrf24network -lrf24mesh -lmosquitto -lmosquittopp
+FLAGS   += $(addprefix -I, $(INCDIRS)) -g 
+CXXFLAGS += $(FLAGS) -lmosquitto -lmosquittopp -lwiringPi -lwiringPiDev 
+CFLAGS   += $(FLAGS) -lmosquitto -lmosquittopp -lwiringPi -lwiringPiDev 
 
 $(TARGET)_file:=$(OBJ_DIR)/$(TARGET)
 
