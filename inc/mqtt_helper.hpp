@@ -22,7 +22,7 @@ inline int to_mqtt_string_helper(char* buffer, const size_t size, int16_t val)
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, int32_t val)
 {
-	return snprintf(buffer, size, "%d", val);
+	return snprintf(buffer, size, "%ld", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, uint8_t val)
@@ -37,7 +37,7 @@ inline int to_mqtt_string_helper(char* buffer, const size_t size, uint16_t val)
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, uint32_t val)
 {
-	return snprintf(buffer, size, "%u", val);
+	return snprintf(buffer, size, "%lu", val);
 }
 
 inline int to_mqtt_string_helper(char* buffer, const size_t size, float val)

@@ -254,6 +254,9 @@ using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
 
 using PingPongDataMsg  = Message<MessageId::PingPongData,PingPongMessage>;
 using PingPongQueryMsg = Message<MessageId::PingPongQuery,PingPongMessage>;
+
+using HeartbeatDataMsg  = Message<MessageId::HeartbeatData,HeartbeatMessage>;
+using HeartbeatQueryMsg = Message<MessageId::HeartbeatQuery,HeartbeatMessage>;
 	
 
 }
