@@ -18,18 +18,19 @@ namespace PeripheralMessages
 
 uint8_t RFM69Handler::mHandlerBuffer[BUFFER_SIZE];
 
-
 void RFM69Handler::begin(uint8_t node)
 {
 	RF::init();
 	RF::setNodeAddress(node);
 	RF::setNetworkAddress(100);
 	RF::enableRx();
+
 }
 
 
 void RFM69Handler::serviceOnce()
 {
+
 	while (RF::isPayloadReady() ) {
 		
 		uint8_t length = RF::readPayload(mHandlerBuffer,sizeof(mHandlerBuffer));
@@ -38,8 +39,13 @@ void RFM69Handler::serviceOnce()
 		uint8_t *msg = &mHandlerBuffer[sizeof(PacketHeader)];
 		MessageHandler::process_messages(msg,length - sizeof(PacketHeader),header->Source);
 	}
-}
 
+	//Always connected nodes this works
+	//TODO low power nodes how to handle heartbeat
+#ifndef __arm__
+	serviceHeartbeat();
+#endif
+}
 
 
 bool RFM69Handler::publishMessage(const MessageBuffer& buffer,const  uint16_t node)
@@ -58,5 +64,26 @@ void RFM69Handler::handleVersionQuery(void* args, void* msg,const uint16_t calli
 	//publish_message(buffer,sizeof(buffer),calling_id);
 	publishMessage(version , calling_id);
 }
+
+#ifndef __arm__
+//Should send an update once every 2 seconds
+void RFM69Handler::serviceHeartbeat()
+{
+	uint8_t buffer[8];
+	uint32_t upTime = sys::updateUpTimeInSeconds();
+	if(false == mSentUpdate) {
+		HeartbeatDataMsg heartbeat(mHandlerBuffer,BUFFER_SIZE,true);
+		heartbeat.get_message_payload()->upTimeInSeconds = upTime;
+		publishMessage(heartbeat, GATEWAY_ID);
+		mSentUpdate = true;
+	}
+	else {
+		//send every other second
+		if((upTime & 0x01) == 0) {
+			mSentUpdate = false;
+		}
+	}
+}
+#endif
 
 }

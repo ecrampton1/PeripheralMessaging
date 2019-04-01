@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-#ifndef EMBEDDED_MESSAGES
+#ifdef __arm__
 #include <string>
 #include <sstream>      // std::ostringstream
 #include <stdio.h>
@@ -32,7 +32,7 @@ class Message
 public:
 	static constexpr uint8_t BUFFER_SIZE = sizeof(PayloadHeader) + sizeof(_messageStruct);
 
-#ifndef EMBEDDED_MESSAGES
+#ifdef __arm__
 	Message(const std::string& mqtt_message) :
 		Message()
 	{
@@ -60,9 +60,6 @@ public:
 	Message(uint8_t* buffer, uint8_t bufferLength, bool createMessage,uint8_t sensorId=0) :
 	mMessageAllocated(false)
 	{
-		mMessageAllocated = false;
-		mMessageBuffer.mBuffer = buffer;
-		mMessageBuffer.mSize = bufferLength;
 		Initialize(buffer,bufferLength,createMessage,sensorId);
 	}
 
@@ -122,8 +119,13 @@ public:
 			mMessage != nullptr;
 	}
 
+	bool is_message_valid()
+	{
+		return ( nullptr != mMessageBuffer.mBuffer || mMessageBuffer.mSize > 0);
+	}
 
-#ifndef EMBEDDED_MESSAGES
+
+#ifdef __arm__
 
 	void get_message_as_mqtt_topic(char* buffer, const size_t size)
 	{
@@ -202,17 +204,17 @@ public:
 
 private:
 	
-
-
 	void Initialize(uint8_t* buffer, uint8_t bufferLength, bool createMessage, uint8_t sensorId)
 	{
-		if(bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
+		if( nullptr == buffer || bufferLength < sizeof(PayloadHeader) + sizeof(_messageStruct)) {
 			mMessageBuffer.mBuffer = nullptr;
 			mMessageBuffer.mSize = 0;
 			mHeader = nullptr;
 			mMessage = nullptr;
 		}
 		else {
+			mMessageBuffer.mBuffer = buffer;
+			mMessageBuffer.mSize = sizeof(PayloadHeader) + sizeof(_messageStruct);
 			mHeader = reinterpret_cast<PayloadHeader*>(buffer);
 			mMessage = reinterpret_cast<_messageStruct*>(buffer + sizeof(PayloadHeader));
 			//After looking at this I dont know if I like this...Maybe fix this to be more clear due to addition of
@@ -258,6 +260,9 @@ using VersionQueryMsg = Message<MessageId::VersionQuery,EmptyMessage>;
 
 using PingPongDataMsg  = Message<MessageId::PingPongData,PingPongMessage>;
 using PingPongQueryMsg = Message<MessageId::PingPongQuery,PingPongMessage>;
+
+using HeartbeatDataMsg  = Message<MessageId::HeartbeatData,HeartbeatMessage>;
+using HeartbeatQueryMsg = Message<MessageId::HeartbeatQuery,HeartbeatMessage>;
 	
 
 }

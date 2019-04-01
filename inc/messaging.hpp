@@ -32,7 +32,8 @@
 	MESSAGE_ID_DQ(Version,ACTION) \
 	MESSAGE_ID_ALL(Switch,ACTION) \
 	MESSAGE_ID_ALL(Temperature,ACTION) \
-	MESSAGE_ID_DQ(PingPong,ACTION)
+	MESSAGE_ID_DQ(PingPong,ACTION) \
+	MESSAGE_ID_DQ(Heartbeat,ACTION)
 
 #define MESSAGE_ID_TO_STRING(MSG) #MSG,
 
@@ -61,6 +62,11 @@ static const char* MessageIdStrings[] = {
 #define STRUCT_NAME PingPongMessage
 #define STRUCT_FIELDS \
 	X(uint32_t, count)
+#include "message_macro_gen.hpp"
+
+#define STRUCT_NAME HeartbeatMessage
+#define STRUCT_FIELDS \
+	X(uint32_t, upTimeInSeconds)
 #include "message_macro_gen.hpp"
 
 

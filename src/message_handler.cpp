@@ -16,7 +16,6 @@ void MessageHandler::process_messages(uint8_t* const buffer,const size_t length,
 	const PeripheralMessages::PayloadHeader* header = reinterpret_cast<const PeripheralMessages::PayloadHeader*>(buffer);
 	
 	if(length <= sizeof(PeripheralMessages::PayloadHeader)) {
-		printf("Bad message: %X\n",header->mMessageId);
 		return;
 	}	
 	
