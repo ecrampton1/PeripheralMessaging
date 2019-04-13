@@ -11,12 +11,15 @@ using CS = GpioWrapper<1>;
 using RF = Rfm69< SpiDev0, SysWrapper,  CS, DIO0, CarrierFrequency::FREQUENCY_915,DebugWrapper>;
 #else
 #include "mcu_config.hpp"
+#define ENABLE_HEARTBEAT
 #endif
 
 namespace PeripheralMessages
 {
 
 uint8_t RFM69Handler::mHandlerBuffer[BUFFER_SIZE];
+bool RFM69Handler::mSentUpdate = false;
+
 
 void RFM69Handler::begin(uint8_t node)
 {
@@ -42,7 +45,9 @@ void RFM69Handler::serviceOnce()
 
 	//Always connected nodes this works
 	//TODO low power nodes how to handle heartbeat
-	//serviceHeartbeat();
+#ifdef ENABLE_HEARTBEAT
+	serviceHeartbeat();
+#endif //ENABLE_HEARTBEAT
 }
 
 
@@ -68,18 +73,14 @@ void RFM69Handler::serviceHeartbeat()
 {
 	uint8_t buffer[8];
 	uint32_t upTime = sys::updateUpTimeInSeconds();
-	if(false == mSentUpdate) {
+	//detect the edge of change
+	if(false == mSentUpdate && (upTime & 0x01)) {
 		HeartbeatDataMsg heartbeat(mHandlerBuffer,BUFFER_SIZE,true);
 		heartbeat.get_message_payload()->upTimeInSeconds = upTime;
 		publishMessage(heartbeat, GATEWAY_ID);
 		mSentUpdate = true;
 	}
-	else {
-		//send every other second
-		if((upTime & 0x01) == 0) {
-			mSentUpdate = false;
-		}
-	}
+	mSentUpdate = (upTime & 0x01);
 }
 
 }

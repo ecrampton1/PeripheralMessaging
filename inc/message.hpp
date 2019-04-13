@@ -263,6 +263,9 @@ using PingPongQueryMsg = Message<MessageId::PingPongQuery,PingPongMessage>;
 
 using HeartbeatDataMsg  = Message<MessageId::HeartbeatData,HeartbeatMessage>;
 using HeartbeatQueryMsg = Message<MessageId::HeartbeatQuery,HeartbeatMessage>;
+
+using DistanceSensorDataMsg  = Message<MessageId::DistanceSensorData,DistanceSensorMessage>;
+using DistanceSensorQueryMsg = Message<MessageId::DistanceSensorQuery,DistanceSensorMessage>;
 	
 
 }

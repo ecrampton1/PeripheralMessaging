@@ -33,7 +33,8 @@
 	MESSAGE_ID_ALL(Switch,ACTION) \
 	MESSAGE_ID_ALL(Temperature,ACTION) \
 	MESSAGE_ID_DQ(PingPong,ACTION) \
-	MESSAGE_ID_DQ(Heartbeat,ACTION)
+	MESSAGE_ID_DQ(Heartbeat,ACTION) \
+	MESSAGE_ID_DQ(DistanceSensor,ACTION) \
 
 #define MESSAGE_ID_TO_STRING(MSG) #MSG,
 
@@ -87,6 +88,11 @@ static const char* MessageIdStrings[] = {
 #define STRUCT_NAME TemperatureMessage
 #define STRUCT_FIELDS \
 	X(int16_t, temperature)
+#include "message_macro_gen.hpp"
+
+#define STRUCT_NAME DistanceSensorMessage
+#define STRUCT_FIELDS \
+	X(uint16_t, distanceInCm)
 #include "message_macro_gen.hpp"
 
 }
