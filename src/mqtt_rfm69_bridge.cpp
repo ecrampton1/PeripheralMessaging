@@ -3,11 +3,13 @@
 
 using Handler = PeripheralMessages::RFM69Handler;
 
+
+
 MqttRfm69Bridge::MqttRfm69Bridge()
 {
-	Handler::begin(10);
+	//Use default values.
+	Handler::begin(Handler::GATEWAY_ID,Handler::NETWORK_ADDRESS);
 	init();
-	
 }
 
 
@@ -18,7 +20,119 @@ void MqttRfm69Bridge::handle_mqtt_topic(const struct mosquitto_message *message)
 	mIncomingTopics.push(strs);
 }
 
+template<>
+void MqttRfm69Bridge::handle_rf_message<PeripheralMessages::NodeInitQueryMsg>(void* args, void* msg, uint16_t callingId)
+{
+	MqttRfm69Bridge& bridge = *(reinterpret_cast<MqttRfm69Bridge*>(args));
+	PeripheralMessages::NodeInitQueryMsg& msg_obj = *(reinterpret_cast<PeripheralMessages::NodeInitQueryMsg*>(msg));
 
+	PeripheralMessages::NodeInitDataMsg nodeData;
+	nodeData.get_message_payload()->id = bridge.add_to_database();
+	std::cout << "New Node: " << (int)nodeData.get_message_payload()->id << std::endl;
+
+	Handler::publishMessage(nodeData,callingId);
+}
+
+template<>
+void MqttRfm69Bridge::handle_rf_message<PeripheralMessages::ObjectsDataMsg>(void* args, void* msg, uint16_t callingId)
+{
+	MqttRfm69Bridge& bridge = *(reinterpret_cast<MqttRfm69Bridge*>(args));
+	PeripheralMessages::ObjectsDataMsg& msg_obj = *(reinterpret_cast<PeripheralMessages::ObjectsDataMsg*>(msg));
+	uint8_t num = (msg_obj.get_message_payload()->numOfObjects > sizeof(PeripheralMessages::ObjectsMessage::objects)) ?
+					0 : msg_obj.get_message_payload()->numOfObjects;
+
+
+	if(num > 0)
+	{
+		auto it = bridge.mNodeDatabase.find(callingId);
+		if(it != bridge.mNodeDatabase.end())
+		{
+			//empty current set of objects
+			it->second.mNodeObjects.clear();
+		}
+		else
+		{
+			//initialize the calling id in the case it is not saved in our database.
+			NodeInfo node{callingId,std::chrono::system_clock::now()};
+
+			bridge.mNodeDatabase[callingId] = node;
+		}
+
+		for(uint8_t i = 0; i < msg_obj.get_message_payload()->numOfObjects; ++i)
+		{
+			bridge.mNodeDatabase[callingId].mNodeObjects.push_back(static_cast<PeripheralMessages::ObjectType>(msg_obj.get_message_payload()->objects[i]));
+		}
+
+		int n = 0;
+
+		for(auto obj : bridge.mNodeDatabase[callingId].mNodeObjects)
+		{
+			std::ostringstream topic_str;
+			std::string nodeSensorStr = std::to_string(callingId) + "/" + std::to_string(n);
+			topic_str << "homeassistant" << "/" << NodeInfo::object_to_component(obj) << "/"
+					<< nodeSensorStr << "/" << "config";
+			std::string config_str = NodeInfo::object_to_config(obj,callingId,n);
+
+			std::cout << topic_str.str() << " -m " << NodeInfo::object_to_config(obj,callingId,n) << std::endl;
+			//below is an example.  need to create the message that is sent with the config to add the command topic and state topic.
+			//<discovery_prefix>/<component>/[<node_id>/]<object_id>/config -m '{"name": "garden", "command_topic": "homeassistant/switch/irrigation/set", "state_topic": "homeassistant/switch/irrigation/state"}'
+
+			if(bridge.mMqttWrapper->send_message( config_str.c_str(),topic_str.str().c_str()) == false) {
+				printf("Failed to send mqtt message: %s\n", config_str.c_str());
+			}
+			topic_str.clear();
+			n++;
+		}
+
+
+	}
+}
+
+
+
+uint8_t MqttRfm69Bridge::add_to_database()
+{
+	uint8_t prev = 1;
+	uint8_t id = 2;//skip the first 2, reserved gateways
+	std::chrono::system_clock::now();
+
+	for(auto node : mNodeDatabase)
+	{
+		if((node.first - prev) > 1)
+		{
+			id = prev+1;
+		}
+	}
+	NodeInfo node{id,std::chrono::system_clock::now()};
+
+	mNodeDatabase[id] = node;
+	return id;
+}
+
+template<class T>
+void MqttRfm69Bridge::handle_rf_message(void* args, void* msg, uint16_t callingId)
+{
+	MqttRfm69Bridge& bridge = *(reinterpret_cast<MqttRfm69Bridge*>(args));
+	T& msg_obj = *(reinterpret_cast<T*>(msg));
+	bridge.rfm69_to_mqtt(msg_obj,callingId);
+	bridge.update_database(callingId);
+}
+
+void MqttRfm69Bridge::update_database(uint16_t callingId)
+{
+	auto it = mNodeDatabase.find(callingId);
+	if(it != mNodeDatabase.end()) {
+		std::cout << "DB" << callingId << std::endl;
+		mNodeDatabase[callingId].mLastTimeStamp = std::chrono::system_clock::now();
+	}
+	else
+	{
+		std::cout << "Request Object Query " << callingId << std::endl;
+		//request the objects
+		PeripheralMessages::ObjectsQueryMsg msg;
+		Handler::publishMessage(msg,callingId);
+	}
+}
 
 void MqttRfm69Bridge::init()
 {
@@ -33,8 +147,15 @@ void MqttRfm69Bridge::init()
 	} catch (const std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
-}
 
+	//initialize the node array with first 2 reserved for gateway use
+	for(int i = 0 ; i < 2; ++i)//add define for number of gateway ids on a network?
+	{
+		//Used in future for multiple gateways?
+		NodeInfo node{i,std::chrono::system_clock::now()};
+		mNodeDatabase[i] = node;
+	}
+}
 
 void MqttRfm69Bridge::service_once()
 {
@@ -94,7 +215,7 @@ bool MqttRfm69Bridge::checkIncomingTopic(const std::vector<std::string>& topic_s
 	}
 	
 	if( strcmp(topic_strings[1].c_str(),RF_TOPIC_RESET) == 0) {
-		Handler::begin(10);
+		Handler::begin(Handler::GATEWAY_ID,Handler::NETWORK_ADDRESS);
 		return false;
 	}
 	

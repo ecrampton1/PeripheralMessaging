@@ -7,10 +7,67 @@
 #include <iostream>
 #include <queue>
 #include <tuple>
+#include <vector>
+#include <map>
+#include <chrono>
+
+
+struct NodeInfo
+{
+	uint8_t mNodeNumber;
+	std::chrono::time_point<std::chrono::system_clock> mLastTimeStamp;
+	std::vector<PeripheralMessages::ObjectType> mNodeObjects;
+
+	static std::string object_to_component(PeripheralMessages::ObjectType type)
+	{
+		std::string s;
+
+		switch(type)
+		{
+		case PeripheralMessages::ObjectType::SWITCH_CONTROL_OBJECT:
+			s = "switch";
+			break;
+		//SHould also include any other sensor....
+		case PeripheralMessages::ObjectType::TEMPERATURE_SENSOR_OBJECT:
+			s = "sensor";
+			break;
+		default:
+			//Do what?
+			break;
+		}
+		return s;
+	}
+
+	static std::string object_to_config(const PeripheralMessages::ObjectType type, const uint16_t node, const int object)
+	{
+		std::string s;
+		std::string objectNameStr;
+		std::string nodeSensorStr = std::to_string(node) + "/" + std::to_string(object);
+
+		switch(type)
+		{
+		case PeripheralMessages::ObjectType::SWITCH_CONTROL_OBJECT:
+			objectNameStr = "switch_" + std::to_string(node) + "_" + std::to_string(object);
+			s = "{\"name\": \"" + objectNameStr + "\", \"command_topic\": \"RFGateway/In/switch/" + nodeSensorStr +
+			"\", \"state_topic\": \"RFGateway/Out/switch/" + nodeSensorStr + "\"}";
+			break;
+		//SHould also include any other sensor....
+		case PeripheralMessages::ObjectType::TEMPERATURE_SENSOR_OBJECT:
+			objectNameStr = "temp_" + std::to_string(node) + "_" + std::to_string(object);
+			s = "{\"name\": \"" + objectNameStr + "\", \"state_topic\": \"RFGateway/Out/sensor/" + nodeSensorStr + "\"}";
+			break;
+		default:
+			//Do what?
+			break;
+		}
+		return s;
+	}
+};
 
 class MqttRfm69Bridge
 {
 public:
+	friend class PrivateHandler;
 	MqttRfm69Bridge();
 
 	/*@brief Call from main loop to service incoming mqtt messages*/
@@ -18,6 +75,10 @@ public:
 
 
 private:
+
+	//Hold all the information on the nodes
+	std::map<uint8_t,NodeInfo> mNodeDatabase;
+
 	using string_double = std::tuple<std::string,std::string>;
 
 	/*@brief Handle outgoing RF messages by publishing them to the MQTT network.
@@ -30,12 +91,14 @@ private:
 	 * 		  at compile time of the individual node
 	 */
 	template<class T>
-	static void handle_rf_message(void* args, void* msg, uint16_t callingId)
-	{
-		MqttRfm69Bridge& bridge = *(reinterpret_cast<MqttRfm69Bridge*>(args));
-		T& msg_obj = *(reinterpret_cast<T*>(msg));
-		bridge.rfm69_to_mqtt(msg_obj,callingId);
-	}
+	static void handle_rf_message(void* args, void* msg, uint16_t callingId);
+
+	void handle_init_query(void* args, void* msg, uint16_t callingId);
+
+	uint8_t add_to_database();
+
+	void update_database(uint16_t callingId);
+
 
 	template<class T>
 	void rfm69_to_mqtt(T& msg, uint16_t callingId)
@@ -52,6 +115,7 @@ private:
 		}
 
 	}
+
 	bool checkIncomingTopic(const std::vector<std::string>& topic_strings);
 
 	void mqtt_to_rfm69(string_double message);
@@ -60,6 +124,7 @@ private:
 
 	/*@brief Initialize the rfm69 peripheral message handlers and mqtt subscription handler.*/
 	void init();
+
 
 	/*@brief handle incoming mqtt topics
 	 * @param  message Mosquitto struct with mqtt topic information

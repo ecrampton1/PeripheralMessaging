@@ -5,6 +5,7 @@
 #include "sys_wrapper.hpp"
 #include "debug_wrapper.hpp"
 #include "rfm69/rfm69.hpp"
+#include <iostream>
 
 using DIO0 = GpioWrapper<4>;
 using CS = GpioWrapper<1>;
@@ -21,11 +22,11 @@ uint8_t RFM69Handler::mHandlerBuffer[BUFFER_SIZE];
 bool RFM69Handler::mSentUpdate = false;
 
 
-void RFM69Handler::begin(uint8_t node)
+void RFM69Handler::begin(const uint8_t node,const uint8_t network)
 {
 	RF::init();
 	RF::setNodeAddress(node);
-	RF::setNetworkAddress(100);
+	RF::setNetworkAddress(network);
 	RF::enableRx();
 
 }
@@ -35,7 +36,7 @@ void RFM69Handler::serviceOnce()
 {
 
 	while (RF::isPayloadReady() ) {
-		
+		std::cout << "PLR" << std::endl;
 		uint8_t length = RF::readPayload(mHandlerBuffer,sizeof(mHandlerBuffer));
 		RF::enableRx();
 		PacketHeader* header = reinterpret_cast<PacketHeader*>(mHandlerBuffer);
@@ -45,9 +46,9 @@ void RFM69Handler::serviceOnce()
 
 	//Always connected nodes this works
 	//TODO low power nodes how to handle heartbeat
-#ifdef ENABLE_HEARTBEAT
+#ifndef __arm__
 	serviceHeartbeat();
-#endif //ENABLE_HEARTBEAT
+#endif
 }
 
 
@@ -68,6 +69,7 @@ void RFM69Handler::handleVersionQuery(void* args, void* msg,const uint16_t calli
 	publishMessage(version , calling_id);
 }
 
+#ifndef __arm__
 //Should send an update once every 2 seconds
 void RFM69Handler::serviceHeartbeat()
 {
@@ -82,5 +84,6 @@ void RFM69Handler::serviceHeartbeat()
 	}
 	mSentUpdate = (upTime & 0x01);
 }
+#endif
 
 }

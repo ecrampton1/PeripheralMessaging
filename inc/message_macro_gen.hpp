@@ -44,7 +44,7 @@ struct STRUCT_NAME{
 		//mqtt string into a single variable. @ref mqtt_helper.hpp for more
 		//information on the conversion is done using the mqtt '/' token.
 		//@todo this is expecting c strings only.
-#ifdef STRUCT_ARRAY_FIELDS
+#if 0 //ifdef struct arrays
 	#define X(type, name,  size) \
 		i = to_mqtt_string_helper(buffer + offset, size - offset,  name); \
 		offset += i; \
@@ -75,7 +75,7 @@ struct STRUCT_NAME{
 		#endif
 		//@brief If struct  array fields are defined then convert the values saved in struct 
 		//into a mqtt string
-		#ifdef STRUCT_ARRAY_FIELDS
+		#if 0 //ifdef struct arrays
 			#define X(type, name, size) \
 				mqtt_string_helper(pstr, name); \
 				pstr = strtok(NULL,"/"); \

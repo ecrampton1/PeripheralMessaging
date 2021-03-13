@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-#ifdef __ARM__
+#ifdef __arm__
 #include <string>
 #include <sstream>      // std::ostringstream
 #include <stdio.h>
@@ -32,7 +32,7 @@ class Message
 public:
 	static constexpr uint8_t BUFFER_SIZE = sizeof(PayloadHeader) + sizeof(_messageStruct);
 
-#ifdef __ARM__
+#ifdef __arm__
 	Message(const std::string& mqtt_message) :
 		Message()
 	{
@@ -125,7 +125,7 @@ public:
 	}
 
 
-#ifdef __ARM__
+#ifdef __arm__
 
 	void get_message_as_mqtt_topic(char* buffer, const size_t size)
 	{
@@ -244,6 +244,12 @@ template<MessageId m, class t>
 callback Message<m,t>::mCallback = Message<m,t>::default_callback;
 template<MessageId m, class t>
 void* Message<m,t>::mCallbackArgs = nullptr;
+
+using NodeInitDataMsg = Message<MessageId::NodeInitData,NodeInitMessage>;
+using NodeInitQueryMsg = Message<MessageId::NodeInitQuery,EmptyMessage>;
+
+using ObjectsDataMsg = Message<MessageId::ObjectsData,ObjectsMessage>;
+using ObjectsQueryMsg = Message<MessageId::ObjectsQuery,EmptyMessage>;
 
 using SwitchEventMsg  = Message<MessageId::SwitchEvent,SwitchMessage>;
 using SwitchDataMsg  = Message<MessageId::SwitchData,SwitchMessage>;

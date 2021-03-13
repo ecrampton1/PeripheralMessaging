@@ -10,19 +10,21 @@ class RFM69Handler
 {
 public:
 
-static void begin(uint8_t node);
-static void initializeIncomingMessages();
-static bool publishMessage(const MessageBuffer& buffer, const uint16_t node=0);
-static void serviceOnce();
+	static constexpr uint8_t GATEWAY_ID = 1;
+	static constexpr uint8_t NETWORK_ADDRESS = 100;
+
+	static void begin(const uint8_t node,const uint8_t network);
+	static void initializeIncomingMessages();
+	static bool publishMessage(const MessageBuffer& buffer, const uint16_t node=0);
+	static void serviceOnce();
 
 private:
 
-static constexpr uint8_t GATEWAY_ID = 10;
-static constexpr int BUFFER_SIZE = 32;
-static uint8_t mHandlerBuffer[BUFFER_SIZE];
-static bool mSentUpdate;
-static void serviceHeartbeat();
-static void handleVersionQuery(void* args, void* msg,const uint16_t calling_id);
+	static constexpr int BUFFER_SIZE = 32;
+	static uint8_t mHandlerBuffer[BUFFER_SIZE];
+	static bool mSentUpdate;
+	static void serviceHeartbeat();
+	static void handleVersionQuery(void* args, void* msg,const uint16_t calling_id);
 };
 
 }

@@ -35,6 +35,8 @@
 	MESSAGE_ID_DQ(PingPong,ACTION) \
 	MESSAGE_ID_DQ(Heartbeat,ACTION) \
 	MESSAGE_ID_DQ(DistanceSensor,ACTION) \
+	MESSAGE_ID_DQ(NodeInit,ACTION) \
+	MESSAGE_ID_DQ(Objects,ACTION) \
 
 #define MESSAGE_ID_TO_STRING(MSG) #MSG,
 
@@ -51,6 +53,24 @@ static const char* MessageIdStrings[] = {
 		ALL_MESSAGES(MESSAGE_ID_TO_STRING)
 };
 
+//Object type refers to the type of controller/sensor that is attached
+//to this node
+enum class ObjectType : uint8_t
+{
+	SWITCH_CONTROL_OBJECT=0,
+	LIGHT_CONTROL_OBJECT,
+	TEMPERATURE_SENSOR_OBJECT,
+	HUMIDITY_SENSOR_OBJECT,
+	PRESURE_SENSOR_OBJECT,
+	COVER_CONTROL_OBJECT,
+	LOCK_CONTROL_OBJECT,
+	DISTANCE_SENSOR_OBJECT,
+	SERVO_CONTROL_OBJECT,
+	POWER_SENSOR_OBJECT,
+	WEIGHT_SENSOR_OBJECT,
+	MOTION_SENSOR_OBJECT
+};
+
 //const uint16_t MAX_MESSAGE_IDS = sizeof(MessageIdStrings);
 
 
@@ -59,6 +79,20 @@ static const char* MessageIdStrings[] = {
 	X(uint8_t, reserved)
 #include "message_macro_gen.hpp"
 
+
+//Used to return a new node address
+#define STRUCT_NAME NodeInitMessage
+#define STRUCT_FIELDS \
+	X(uint8_t, id)
+#include "message_macro_gen.hpp"
+
+//Objects (sensors,switchs,etc) on this node upto 20 per node
+#define STRUCT_NAME ObjectsMessage
+#define STRUCT_FIELDS \
+	X(uint8_t,numOfObjects)
+#define STRUCT_ARRAY_FIELDS \
+	X(uint8_t,objects,16)
+#include "message_macro_gen.hpp"
 
 #define STRUCT_NAME PingPongMessage
 #define STRUCT_FIELDS \
